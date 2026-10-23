@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حسگر لیزری کدورت آب - سامانه تعاملی پروپوزال</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            rtl: true,
+            theme: {
+                extend: {
+                    colors: {
+                        laser: '#ff2a5f',
+                        'laser-glow': '#ff003c',
+                        photodiode: '#06b6d4',
+                        darkbg: '#0b0f19',
+                        cardbg: 'rgba(17, 24, 39, 0.7)',
+                    },
+                    fontFamily: {
+                        vazir: ['Vazirmatn', 'Tahoma', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #0b0f19;
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        /* Glowing Glassmorphism Effect */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .laser-glow {
+            box-shadow: 0 0 15px rgba(255, 42, 95, 0.6);
+        }
+        .cyan-glow {
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.5);
+        }
+        /* Range slider styling */
+        input[type=range] {
+            accent-color: #ff2a5f;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-laser selection:text-white">
+
+    <!-- Header Section -->
+    <header class="sticky top-0 z-50 glass-panel border-b border-slate-800 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-3">
+            <div class="flex items-center gap-3">
+                <div class="p-2 rounded-xl bg-gradient-to-tr from-laser to-pink-600 text-white shadow-lg laser-glow">
+                    <i data-lucide="zap" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-red-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
+                        حسگر لیزری کدورت آب
+                    </h1>
+                    <p class="text-xs text-slate-400">پنجمین کارسوق لیزر و فوتونیک • دبیرستان فرزانگان ۱ شیراز</p>
+                </div>
+            </div>
+
+            <!-- Global Quick Stats -->
+            <div class="flex items-center gap-2 bg-slate-900/80 p-1.5 rounded-xl border border-slate-800 text-xs text-slate-300">
+                <div class="px-2 py-1 rounded bg-slate-800">اعضا: آیرا، زهرا، نجمه، یسنا</div>
+                <div class="px-2 py-1 rounded bg-slate-800 text-emerald-400 font-mono">طول‌موج: 650nm</div>
+                <div class="px-2 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">لیزر کلاس ۲</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main App Container -->
+    <main class="max-w-7xl mx-auto w-full px-4 py-6 flex-1 flex flex-col gap-6">
+
+        <!-- SCRUBBER / NARRATIVE TIMELINE -->
+        <section class="glass-panel rounded-2xl p-4 shadow-xl border border-slate-800">
+            <div class="flex flex-col gap-3">
+                <div class="flex justify-between items-center text-sm font-semibold text-slate-300">
+                    <span class="flex items-center gap-2">
+                        <i data-lucide="sliders" class="w-4 h-4 text-laser"></i>
+                        ناوبری پروپوزال (پیمایش گام‌به‌گام)
+                    </span>
+                    <span id="current-phase-title" class="text-laser font-bold text-base">بخش ۱: معرفی و چکیده</span>
+                </div>
+
+                <!-- Step Tracker Buttons -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 text-xs">
+                    <button onclick="goToPhase(1)" id="btn-phase-1" class="phase-btn p-2 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 hover:border-laser transition flex flex-col items-center gap-1 active">
+                        <span class="font-mono text-slate-400">۰۱</span>
+                        <span>معرفی و چکیده</span>
+                    </button>
+                    <button onclick="goToPhase(2)" id="btn-phase-2" class="phase-btn p-2 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 hover:border-laser transition flex flex-col items-center gap-1">
+                        <span class="font-mono text-slate-400">۰۲</span>
+                        <span>ضرورت و اهداف</span>
+                    </button>
+                    <button onclick="goToPhase(3)" id="btn-phase-3" class="phase-btn p-2 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 hover:border-laser transition flex flex-col items-center gap-1">
+                        <span class="font-mono text-slate-400">۰۳</span>
+                        <span>شبیه‌ساز نوری</span>
+                    </button>
+                    <button onclick="goToPhase(4)" id="btn-phase-4" class="phase-btn p-2 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 hover:border-laser transition flex flex-col items-center gap-1">
+                        <span class="font-mono text-slate-400">۰۴</span>
+                        <span>مراحل اجرایی</span>
+                    </button>
+                    <button onclick="goToPhase(5)" id="btn-phase-5" class="phase-btn p-2 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 hover:border-laser transition flex flex-col items-center gap-1">
+                        <span class="font-mono text-slate-400">۰۵</span>
+                        <span>کالیبراسیون</span>
+                    </button>
+                    <button onclick="goToPhase(6)" id="btn-phase-6" class="phase-btn p-2 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 hover:border-laser transition flex flex-col items-center gap-1">
+                        <span class="font-mono text-slate-400">۰۶</span>
+                        <span>زمان‌بندی و هزینه</span>
+                    </button>
+                    <button onclick="goToPhase(7)" id="btn-phase-7" class="phase-btn p-2 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 hover:border-laser transition flex flex-col items-center gap-1">
+                        <span class="font-mono text-slate-400">۰۷</span>
+                        <span>گروه و منابع</span>
+                    </button>
+                </div>
+
+                <!-- Scrub Range Input Bar -->
+                <div class="flex items-center gap-3 pt-2">
+                    <button id="play-btn" onclick="togglePlay()" class="p-2 rounded-lg bg-laser hover:bg-red-600 text-white transition flex items-center justify-center">
+                        <i data-lucide="play" class="w-4 h-4" id="play-icon"></i>
+                    </button>
+                    <input type="range" id="scrubber-range" min="1" max="7" value="1" step="1" oninput="goToPhase(parseInt(this.value))" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                    <span id="scrubber-num" class="text-xs font-mono text-slate-400 px-2 py-1 bg-slate-800 rounded">1/7</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- DYNAMIC CONTENT PANELS CONTAINER -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+            <!-- MAIN OPTICS & PHYSICS LAB CANVAS (Always Visible in Grid / Responsive) -->
+            <div class="lg:col-span-7 flex flex-col gap-4">
+                <div class="glass-panel rounded-2xl p-4 border border-slate-800 flex flex-col gap-3 relative overflow-hidden">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                        <h2 class="text-base font-bold text-slate-200 flex items-center gap-2">
+                            <i data-lucide="eye" class="w-5 h-5 text-cyan-400"></i>
+                            شبیه‌ساز تعاملی فوتونیک و پراکندگی نور (Lab View)
+                        </h2>
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800 animate-pulse">زنده (Interactive)</span>
+                    </div>
+
+                    <!-- Canvas Box -->
+                    <div class="relative w-full h-[320px] bg-slate-950 rounded-xl border border-slate-800 overflow-hidden flex items-center justify-center">
+                        <canvas id="opticsCanvas" class="w-full h-full block"></canvas>
+
+                        <!-- Canvas Controls Overlay -->
+                        <div class="absolute bottom-2 left-2 right-2 glass-panel p-2 rounded-xl flex flex-wrap justify-between items-center gap-2 text-xs">
+                            <div class="flex items-center gap-2">
+                                <button onclick="toggleLaser()" id="laser-toggle-btn" class="px-3 py-1.5 rounded-lg bg-laser text-white font-semibold laser-glow transition hover:opacity-90 flex items-center gap-1">
+                                    <i data-lucide="power" class="w-3.5 h-3.5"></i>
+                                    <span id="laser-btn-text">خاموش کردن لیزر</span>
+                                </button>
+                                <button onclick="toggleAmbient()" id="ambient-btn" class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 transition hover:bg-slate-700 flex items-center gap-1">
+                                    <i data-lucide="sun" class="w-3.5 h-3.5 text-amber-400"></i>
+                                    <span>نور محیط: <span id="ambient-status-text" class="text-amber-400 font-bold">خاموش</span></span>
+                                </button>
+                            </div>
+
+                            <div class="flex items-center gap-2 bg-slate-900/90 px-2 py-1 rounded-lg border border-slate-800">
+                                <span class="text-slate-400">کدورت (ذرات معلق):</span>
+                                <input type="range" id="turbidity-slider" min="0" max="100" value="25" oninput="updateTurbidity(this.value)" class="w-24 h-1.5 bg-slate-700 rounded appearance-none">
+                                <span id="turbidity-val" class="font-mono text-cyan-400 font-bold w-8 text-center">۲۵٪</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Photodiode Live Dashboard Outputs -->
+                    <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                        <div class="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                            <div class="text-slate-400">سیگنال خام (Raw)</div>
+                            <div id="signal-raw" class="text-lg font-mono font-bold text-red-400 mt-0.5">3.85 V</div>
+                            <div class="text-[10px] text-slate-500">مجموع نور لیزر + زمینه</div>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                            <div class="text-slate-400">سیگنال زمینه (Ambient)</div>
+                            <div id="signal-ambient" class="text-lg font-mono font-bold text-amber-400 mt-0.5">0.05 V</div>
+                            <div class="text-[10px] text-slate-500">لیزر خاموش</div>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 border-cyan-500/30 cyan-glow">
+                            <div class="text-cyan-400 font-semibold">سیگنال تصحیح‌شده</div>
+                            <div id="signal-corrected" class="text-lg font-mono font-bold text-cyan-400 mt-0.5">3.80 V</div>
+                            <div class="text-[10px] text-cyan-300/70">روش تفاضلی (I_on - I_off)</div>
+                        </div>
+                    </div>
+
+                    <!-- Realtime Chart -->
+                    <div class="p-3 bg-slate-950/80 rounded-xl border border-slate-800">
+                        <div class="flex justify-between items-center text-xs text-slate-400 mb-2">
+                            <span>نمودار سیگنال فوتودیود عبوری (Voltage) در برابر کدورت آب</span>
+                            <span class="text-cyan-400 font-mono">افت توان نوری (Beer-Lambert)</span>
+                        </div>
+                        <div class="h-36 w-full">
+                            <canvas id="signalChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP CONTENT DISPLAY PANEL (Swappable based on Phase) -->
+            <div class="lg:col-span-5 flex flex-col gap-4">
+
+                <!-- Phase 1: Intro & Abstract -->
+                <div id="panel-phase-1" class="phase-panel glass-panel rounded-2xl p-5 border border-slate-800 flex flex-col gap-4">
+                    <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
+                        <span class="px-2.5 py-1 rounded-lg bg-laser/20 text-laser font-bold text-xs">بخش ۱</span>
+                        <h3 class="font-bold text-lg text-slate-100">معرفی طرح و چکیده اجرایی</h3>
+                    </div>
+                    <p class="text-sm leading-relaxed text-slate-300">
+                        آبی که گل‌آلود یا شیری‌رنگ است، نور را راحت از خود عبور نمی‌دهد. ذرات ریز معلق در آب، نور را در جهت‌های مختلف پخش می‌کنند و آب کدر دیده می‌شود. به این ویژگی «کدورت» می‌گویند <span class="text-cyan-400 font-bold">[۱][۲]</span>.
+                    </p>
+                    <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2 text-xs">
+                        <div class="font-bold text-slate-200 border-b border-slate-800 pb-1">مشخصات شناسنامه‌ای پروژه:</div>
+                        <div class="grid grid-cols-2 gap-2 text-slate-300">
+                            <div>• <span class="text-slate-400">مدرسه:</span> فرزانگان ۱ شیراز</div>
+                            <div>• <span class="text-slate-400">ناحیه:</span> ناحیه ۲ شیراز</div>
+                            <div>• <span class="text-slate-400">دوره:</span> متوسطه اول</div>
+                            <div>• <span class="text-slate-400">رویداد:</span> پنجمین کارسوق فوتونیک</div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <h4 class="text-xs font-bold text-slate-400">واژه‌نامه کلیدی (کلیک کنید):</h4>
+                        <div class="space-y-1.5 text-xs">
+                            <details class="group bg-slate-900/90 rounded-lg p-2 border border-slate-800">
+                                <summary class="cursor-pointer font-semibold text-cyan-400 flex justify-between items-center">
+                                    <span>کدورت (Turbidity) چیست؟</span>
+                                    <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition group-open:rotate-180"></i>
+                                </summary>
+                                <p class="mt-2 text-slate-300 leading-relaxed">میزان کدر یا شفاف بودن آب. هرچه ذرات معلق بیشتر باشند، پراکندگی نور بیشتر و عبور مستقیم نور کمتر می‌شود.</p>
+                            </details>
+                            <details class="group bg-slate-900/90 rounded-lg p-2 border border-slate-800">
+                                <summary class="cursor-pointer font-semibold text-cyan-400 flex justify-between items-center">
+                                    <span>واحد NTU و شاخص نسبی</span>
+                                    <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition group-open:rotate-180"></i>
+                                </summary>
+                                <p class="mt-2 text-slate-300 leading-relaxed">Nephelometric Turbidity Unit. دستگاه ما ابتدا یک شاخص نسبی مقایسه‌ای می‌دهد و فقط در صورت وجود استاندارد مرجع، کالیبراسیون NTU انجام می‌شود.</p>
+                            </details>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 2: Importance & Objectives -->
+                <div id="panel-phase-2" class="phase-panel glass-panel rounded-2xl p-5 border border-slate-800 hidden flex-col gap-4">
+                    <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
+                        <span class="px-2.5 py-1 rounded-lg bg-laser/20 text-laser font-bold text-xs">بخش ۲</span>
+                        <h3 class="font-bold text-lg text-slate-100">ضرورت، اهداف و حدود ادعا</h3>
+                    </div>
+                    <p class="text-sm leading-relaxed text-slate-300">
+                        کدورت یکی از شاخص‌های اصلی سنجش کیفیت آب توسط سازمان EPA است <span class="text-cyan-400 font-bold">[۲]</span>. ساخت این دستگاه یک ابزار آموزشی ارزان برای یادگیری فوتونیک و پایش محیط زیست است.
+                    </p>
+                    <!-- Warning / Safety Box -->
+                    <div class="p-3 rounded-xl bg-amber-950/40 border border-amber-500/30 text-amber-200 text-xs flex gap-2">
+                        <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-400 shrink-0 mt-0.5"></i>
+                        <div>
+                            <span class="font-bold block mb-0.5">حدود و محدودیت ادعا:</span>
+                            کدورت یک ویژگی نوری است و به تنهایی آشامیدنی بودن یا نبودن آب را ثابت نمی‌کند <span class="text-amber-300 font-bold">[۵]</span>. این دستگاه برای کاربرد آموزشی طراحی شده است.
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <h4 class="text-xs font-bold text-slate-300">اهداف ارزیابی طرح:</h4>
+                        <ul class="text-xs space-y-1.5 text-slate-300">
+                            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i> ساخت محفظه پایدار رومیزی</li>
+                            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i> تفکیک ۳ تا ۵ سطح مختلف کدورت</li>
+                            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i> تکرارپذیری با ثبت دست‌کم ۵ قرائت</li>
+                            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i> حذف اثر نور محیط با تکنیک ثبت زمینه</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Phase 3: Laser & Optics Setup -->
+                <div id="panel-phase-3" class="phase-panel glass-panel rounded-2xl p-5 border border-slate-800 hidden flex-col gap-4">
+                    <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
+                        <span class="px-2.5 py-1 rounded-lg bg-laser/20 text-laser font-bold text-xs">بخش ۳</span>
+                        <h3 class="font-bold text-lg text-slate-100">فیزیک فوتونیک و چیدمان نوری</h3>
+                    </div>
+                    <p class="text-sm leading-relaxed text-slate-300">
+                        منبع نور یک لیزر دیودی قرمز کم‌توان با طول موج ۶۵۰nm است. پرتو مستقیم از ظرف نمونه شفاف عبور می‌کند.
+                    </p>
+                    <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 text-xs space-y-2">
+                        <div class="text-cyan-400 font-bold">اجزای چیدمان نوری (Optics Layout):</div>
+                        <div class="grid grid-cols-2 gap-2 text-slate-300">
+                            <div class="p-2 bg-slate-950 rounded border border-slate-800">• ماژول لیزر قرمز (650nm)</div>
+                            <div class="p-2 bg-slate-950 rounded border border-slate-800">• کوت / ظرف نمونه شفاف</div>
+                            <div class="p-2 bg-slate-950 rounded border border-slate-800">• فوتودیود اصلی (نور عبوری)</div>
+                            <div class="p-2 bg-slate-950 rounded border border-slate-800">• فوتودیود دوم (پراکنده ۹۰°)</div>
+                        </div>
+                    </div>
+                    <!-- Safety Guidelines -->
+                    <div class="p-3 rounded-xl bg-red-950/30 border border-red-500/30 text-xs text-red-200">
+                        <div class="font-bold text-red-400 flex items-center gap-1 mb-1">
+                            <i data-lucide="shield-alert" class="w-4 h-4"></i> دستورالعمل ایمنی لیزر (FDA Guide) [۶]
+                        </div>
+                        هرگز به پرتو مستقیم یا بازتاب آن نگاه نکنید. تابش به چشم دیگران اکیداً ممنوع است. توان لیزر کمتر از 1mW انتخاب می‌شود.
+                    </div>
+                </div>
+
+                <!-- Phase 4: Execution Steps -->
+                <div id="panel-phase-4" class="phase-panel glass-panel rounded-2xl p-5 border border-slate-800 hidden flex-col gap-4">
+                    <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
+                        <span class="px-2.5 py-1 rounded-lg bg-laser/20 text-laser font-bold text-xs">بخش ۴</span>
+                        <h3 class="font-bold text-lg text-slate-100">مراحل اجرایی و ساخت مدار</h3>
+                    </div>
+                    <div class="space-y-2 text-xs text-slate-300">
+                        <div class="p-2.5 bg-slate-900/90 rounded-xl border border-slate-800 flex items-start gap-2">
+                            <span class="px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 font-mono font-bold">۱</span>
+                            <div><strong class="text-slate-200">طراحی مسیر نوری:</strong> تثبیت پایه‌ها و فاصله لیزر تا حسگر در محفظه تاریک.</div>
+                        </div>
+                        <div class="p-2.5 bg-slate-900/90 rounded-xl border border-slate-800 flex items-start gap-2">
+                            <span class="px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 font-mono font-bold">۲</span>
+                            <div><strong class="text-slate-200">مونتاژ مدار خوانش:</strong> اتصال فوتودیود به آردوینو/مولتی‌متر و تنظیم مقاومت‌ها.</div>
+                        </div>
+                        <div class="p-2.5 bg-slate-900/90 rounded-xl border border-slate-800 flex items-start gap-2">
+                            <span class="px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 font-mono font-bold">۳</span>
+                            <div><strong class="text-slate-200">آماده‌سازی نمونه‌ها:</strong> تهیه استاندارد با اضافه کردن شیر رقیق‌شده یا ذرات ایمن.</div>
+                        </div>
+                        <div class="p-2.5 bg-slate-900/90 rounded-xl border border-slate-800 flex items-start gap-2">
+                            <span class="px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 font-mono font-bold">۴</span>
+                            <div><strong class="text-slate-200">ثبت سیگنال و ۵ بار تکرار:</strong> اندازه‌گیری با لیزر روشن و خاموش برای کاهش خطا.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 5: Calibration & Math -->
+                <div id="panel-phase-5" class="phase-panel glass-panel rounded-2xl p-5 border border-slate-800 hidden flex-col gap-4">
+                    <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
+                        <span class="px-2.5 py-1 rounded-lg bg-laser/20 text-laser font-bold text-xs">بخش ۵</span>
+                        <h3 class="font-bold text-lg text-slate-100">فرمول تصحیح نور زمینه و تحلیل</h3>
+                    </div>
+                    <div class="p-4 rounded-xl bg-slate-950 border border-cyan-500/40 text-center space-y-2">
+                        <span class="text-xs text-slate-400 block">فرمول تصحیح نویز زمینه اتاق:</span>
+                        <div class="text-base sm:text-lg font-mono font-bold text-cyan-300 dir-ltr">
+                            Signal<sub>corrected</sub> = Signal<sub>Laser ON</sub> − Signal<sub>Laser OFF</sub>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">با کم کردن سیگنال زمینه (لیزر خاموش)، تغییرات نور لامپ اتاق روی دقت اندازه‌گیری اثر نمی‌گذارد.</p>
+                    </div>
+                    <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 text-xs space-y-2">
+                        <div class="font-bold text-slate-200">کنترل متغیرهای آزمایش:</div>
+                        <ul class="space-y-1 text-slate-300">
+                            <li class="flex items-center gap-1.5"><i data-lucide="minus-sharp" class="w-3 h-3 text-cyan-400"></i> <strong>متغیرهای ثابت:</strong> نوع ظرف، حجم مایع، فاصله قطعات</li>
+                            <li class="flex items-center gap-1.5"><i data-lucide="minus-sharp" class="w-3 h-3 text-cyan-400"></i> <strong>متغیر مستقل:</strong> غلظت ذرات معلق (کدورت)</li>
+                            <li class="flex items-center gap-1.5"><i data-lucide="minus-sharp" class="w-3 h-3 text-cyan-400"></i> <strong>متغیر وابسته:</strong> ولتاژ خروجی فوتودیود (V)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Phase 6: Timeline & Budget -->
+                <div id="panel-phase-6" class="phase-panel glass-panel rounded-2xl p-5 border border-slate-800 hidden flex-col gap-4">
+                    <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
+                        <span class="px-2.5 py-1 rounded-lg bg-laser/20 text-laser font-bold text-xs">بخش ۶</span>
+                        <h3 class="font-bold text-lg text-slate-100">برنامه زمان‌بندی ۳۰ روزه و هزینه</h3>
+                    </div>
+                    <!-- Gantt Preview -->
+                    <div class="space-y-2 text-xs">
+                        <div class="text-slate-300 font-semibold">گام‌سنج ۳۰ روزه اجرا:</div>
+                        <div class="space-y-1.5">
+                            <div>
+                                <div class="flex justify-between text-[11px] text-slate-400 mb-0.5">
+                                    <span>مطالعه و طراحی نوری</span>
+                                    <span>روز ۱ تا ۷</span>
+                                </div>
+                                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                                    <div class="bg-cyan-400 h-full w-[23%]"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-[11px] text-slate-400 mb-0.5">
+                                    <span>تهیه قطعات و مونتاژ مدار</span>
+                                    <span>روز ۸ تا ۱۶</span>
+                                </div>
+                                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                                    <div class="bg-laser h-full w-[30%] mr-[23%]"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-[11px] text-slate-400 mb-0.5">
+                                    <span>آزمایش نمونه‌ها و تحلیل داده</span>
+                                    <span>روز ۱۷ تا ۲۷</span>
+                                </div>
+                                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                                    <div class="bg-amber-400 h-full w-[35%] mr-[53%]"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Budget Summary -->
+                    <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 text-xs space-y-2">
+                        <div class="flex justify-between items-center text-slate-200 font-bold border-b border-slate-800 pb-1">
+                            <span>برآورد اولیه هزینه‌ها:</span>
+                            <span class="text-emerald-400 font-mono">۱,۰۰۰,۰۰۰ تا ۲,۹۰۰,۰۰۰ تومان</span>
+                        </div>
+                        <div class="text-[11px] text-slate-400">شامل ماژول لیزر، فوتودیود، آردوینو، بردبورد، ظروف کوت و ساخت محفظه تاریک.</div>
+                    </div>
+                </div>
+
+                <!-- Phase 7: Team & References -->
+                <div id="panel-phase-7" class="phase-panel glass-panel rounded-2xl p-5 border border-slate-800 hidden flex-col gap-4">
+                    <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
+                        <span class="px-2.5 py-1 rounded-lg bg-laser/20 text-laser font-bold text-xs">بخش ۷</span>
+                        <h3 class="font-bold text-lg text-slate-100">نقش اعضای گروه و منابع علمی</h3>
+                    </div>
+                    <!-- Team Cards Grid -->
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+                            <div class="font-bold text-cyan-400">آیرا متقیان</div>
+                            <div class="text-[11px] text-slate-400 mt-1">طراحی مسیر نوری، مونتاژ جایگاه نمونه و کنترل ایمنی.</div>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+                            <div class="font-bold text-cyan-400">زهرا نوروزی</div>
+                            <div class="text-[11px] text-slate-400 mt-1">بررسی مدار خوانش، تحلیل داده‌ها و رسم نمودارها.</div>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+                            <div class="font-bold text-cyan-400">نجمه کیهانی</div>
+                            <div class="text-[11px] text-slate-400 mt-1">مطالعه منابع، آماده‌سازی نمونه‌های آب و ثبت آزمایش.</div>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+                            <div class="font-bold text-cyan-400">یسنا شمشیری</div>
+                            <div class="text-[11px] text-slate-400 mt-1">طراحی محفظه تاریک، مستندسازی و نگارش پوستر.</div>
+                        </div>
+                    </div>
+
+                    <!-- Ref list -->
+                    <div class="text-[11px] space-y-1 text-slate-400 border-t border-slate-800 pt-2">
+                        <div class="font-bold text-slate-300">منابع کلیدی پروپوزال:</div>
+                        <div>[۱] USGS Turbidity & Water Science</div>
+                        <div>[۲] EPA Water Monitoring Guidelines</div>
+                        <div>[۳] Kelley et al. (2014) - Open Source Turbidimeter</div>
+                        <div>[۴] Trevathan et al. (2020) - Sensors Journal</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-panel border-t border-slate-800 py-3 text-center text-xs text-slate-500 mt-6">
+        <p>طراح و پیاده‌سازی تعاملی پروپوزال • کارسوق لیزر و فوتونیک • شیراز ۱۴۰۵</p>
+    </footer>
+
+    <!-- JavaScript Logic & Animations -->
+    <script>
+        // Global State Variables
+        let currentPhase = 1;
+        let isLaserOn = true;
+        let isAmbientOn = false;
+        let turbidity = 25; // Percentage
+        let isPlaying = false;
+        let playInterval = null;
+
+        // Canvas & Physics State
+        const canvas = document.getElementById('opticsCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        // Chart Instance
+        let signalChart;
+
+        // Initialize App on DOM Load
+        window.onload = function() {
+            lucide.createIcons();
+            resizeCanvas();
+            initChart();
+            initParticles();
+            requestAnimationFrame(animateOptics);
+            updateReadings();
+
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                initParticles();
+            });
+        };
+
+        // Resize Canvas dynamically
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+        }
+
+        // Particle System for Turbidity Simulation
+        function initParticles() {
+            particles = [];
+            const particleCount = Math.floor((turbidity / 100) * 150);
+            const beakerWidth = 100;
+            const beakerX = canvas.width / 2 - beakerWidth / 2;
+            const beakerHeight = 160;
+            const beakerY = canvas.height / 2 - beakerHeight / 2 + 10;
+
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: beakerX + 10 + Math.random() * (beakerWidth - 20),
+                    y: beakerY + 10 + Math.random() * (beakerHeight - 20),
+                    vx: (Math.random() - 0.5) * 0.4,
+                    vy: (Math.random() - 0.5) * 0.4,
+                    size: 1.5 + Math.random() * 2
+                });
+            }
+        }
+
+        // Main Animation Loop
+        function animateOptics() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const w = canvas.width;
+            const h = canvas.height;
+
+            // Ambient background lighting effect
+            if (isAmbientOn) {
+                ctx.fillStyle = 'rgba(251, 191, 36, 0.08)';
+                ctx.fillRect(0, 0, w, h);
+            }
+
+            // Draw Beaker / Cuvette
+            const beakerW = 100;
+            const beakerH = 160;
+            const beakerX = w / 2 - beakerW / 2;
+            const beakerY = h / 2 - beakerH / 2 + 10;
+
+            // Water Fluid Fill
+            ctx.fillStyle = `rgba(14, 116, 144, ${0.15 + (turbidity / 100) * 0.45})`;
+            ctx.fillRect(beakerX + 4, beakerY + 10, beakerW - 8, beakerH - 14);
+
+            // Water Beaker Outline
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(beakerX, beakerY, beakerW, beakerH);
+
+            // Water Label
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '10px Vazirmatn, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('نمونه آب', beakerX + beakerW / 2, beakerY - 8);
+
+            // Update & Draw Particles (Suspended Solids)
+            ctx.fillStyle = '#e2e8f0';
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+
+                // Bounce in beaker
+                if (p.x < beakerX + 6 || p.x > beakerX + beakerW - 6) p.vx *= -1;
+                if (p.y < beakerY + 12 || p.y > beakerY + beakerH - 6) p.vy *= -1;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw Laser Emitter (Left)
+            const laserX = 40;
+            const laserY = h / 2;
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(laserX - 25, laserY - 15, 30, 30);
+            ctx.strokeStyle = '#ff2a5f';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(laserX - 25, laserY - 15, 30, 30);
+
+            ctx.fillStyle = '#ff2a5f';
+            ctx.fillText('لیزر 650nm', laserX - 10, laserY + 30);
+
+            // Draw Photodiode Sensor Main (Right)
+            const pdX = w - 50;
+            const pdY = h / 2;
+            ctx.fillStyle = '#0f766e';
+            ctx.fillRect(pdX, pdY - 20, 25, 40);
+            ctx.strokeStyle = '#06b6d4';
+            ctx.strokeRect(pdX, pdY - 20, 25, 40);
+
+            ctx.fillStyle = '#06b6d4';
+            ctx.fillText('فوتودیود اصلی', pdX + 12, pdY + 35);
+
+            // Draw Photodiode Sensor 2 (Scattered 90 degree - Bottom)
+            const pd2X = w / 2;
+            const pd2Y = beakerY + beakerH + 35;
+            ctx.fillStyle = '#0f766e';
+            ctx.fillRect(pd2X - 15, pd2Y, 30, 18);
+            ctx.strokeStyle = '#06b6d4';
+            ctx.strokeRect(pd2X - 15, pd2Y, 30, 18);
+            ctx.fillText('حسگر پراکندگی (۹۰°)', pd2X, pd2Y + 30);
+
+            // Draw Beam Lines & Light Scattering if Laser is ON
+            if (isLaserOn) {
+                // Incoming Beam (Laser to Beaker)
+                ctx.strokeStyle = '#ff2a5f';
+                ctx.shadowColor = '#ff2a5f';
+                ctx.shadowBlur = 12;
+                ctx.lineWidth = 3;
+
+                ctx.beginPath();
+                ctx.moveTo(laserX + 5, laserY);
+                ctx.lineTo(beakerX, laserY);
+                ctx.stroke();
+
+                // Attenuated Beam inside water & output to photodiode
+                const attenuationFactor = Math.max(0.05, 1 - (turbidity / 110));
+                const outputLineWidth = Math.max(0.5, 3 * attenuationFactor);
+
+                ctx.lineWidth = outputLineWidth;
+                ctx.strokeStyle = `rgba(255, 42, 95, ${attenuationFactor})`;
+
+                ctx.beginPath();
+                ctx.moveTo(beakerX, laserY);
+                ctx.lineTo(pdX, pdY);
+                ctx.stroke();
+
+                // 90-degree Scattered Light Beam Simulation
+                const scatterIntensity = (turbidity / 100) * 0.8;
+                if (scatterIntensity > 0.05) {
+                    ctx.strokeStyle = `rgba(255, 100, 120, ${scatterIntensity})`;
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(w / 2, laserY);
+                    ctx.lineTo(pd2X, pd2Y);
+                    ctx.stroke();
+                }
+
+                // Reset Glow
+                ctx.shadowBlur = 0;
+            }
+
+            requestAnimationFrame(animateOptics);
+        }
+
+        // Toggle Laser State
+        function toggleLaser() {
+            isLaserOn = !isLaserOn;
+            const btnText = document.getElementById('laser-btn-text');
+            const btn = document.getElementById('laser-toggle-btn');
+
+            if (isLaserOn) {
+                btnText.textContent = 'خاموش کردن لیزر';
+                btn.className = 'px-3 py-1.5 rounded-lg bg-laser text-white font-semibold laser-glow transition hover:opacity-90 flex items-center gap-1';
+            } else {
+                btnText.textContent = 'روشن کردن لیزر';
+                btn.className = 'px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 transition hover:bg-slate-700 flex items-center gap-1';
+            }
+            updateReadings();
+        }
+
+        // Toggle Ambient Room Light
+        function toggleAmbient() {
+            isAmbientOn = !isAmbientOn;
+            const statusText = document.getElementById('ambient-status-text');
+            statusText.textContent = isAmbientOn ? 'روشن (پرنور)' : 'خاموش';
+            statusText.className = isAmbientOn ? 'text-amber-400 font-bold' : 'text-slate-500 font-bold';
+            updateReadings();
+        }
+
+        // Update Turbidity Slider
+        function updateTurbidity(val) {
+            turbidity = parseInt(val);
+            document.getElementById('turbidity-val').textContent = turbidity + '٪';
+            initParticles();
+            updateReadings();
+        }
+
+        // Update Voltage Output Dashboard & Chart
+        function updateReadings() {
+            // Signal physics formula: V_laser = 4.0 * exp(-k * turbidity)
+            const k = 0.022;
+            const laserSignal = isLaserOn ? (4.0 * Math.exp(-k * turbidity)) : 0;
+            const ambientNoise = isAmbientOn ? 0.45 : 0.04;
+
+            const rawSignal = laserSignal + ambientNoise;
+            const correctedSignal = Math.max(0, rawSignal - ambientNoise);
+
+            document.getElementById('signal-raw').textContent = rawSignal.toFixed(2) + ' V';
+            document.getElementById('signal-ambient').textContent = ambientNoise.toFixed(2) + ' V';
+            document.getElementById('signal-corrected').textContent = correctedSignal.toFixed(2) + ' V';
+
+            // Highlight chart active point
+            if (signalChart) {
+                signalChart.data.datasets[0].data = getChartData();
+                signalChart.update('none');
+            }
+        }
+
+        // Generate Chart Data Points
+        function getChartData() {
+            const data = [];
+            const k = 0.022;
+            const ambientNoise = isAmbientOn ? 0.45 : 0.04;
+
+            for (let t = 0; t <= 100; t += 10) {
+                const laserSig = isLaserOn ? (4.0 * Math.exp(-k * t)) : 0;
+                data.push((laserSig + ambientNoise).toFixed(2));
+            }
+            return data;
+        }
+
+        // Initialize Chart.js
+        function initChart() {
+            const ctxChart = document.getElementById('signalChart').getContext('2d');
+            signalChart = new Chart(ctxChart, {
+                type: 'line',
+                data: {
+                    labels: ['0%', '10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '100%'],
+                    datasets: [{
+                        label: 'ولتاژ حسگر عبوری (Volt)',
+                        data: getChartData(),
+                        borderColor: '#06b6d4',
+                        backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 3,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#94a3b8', font: { family: 'Vazirmatn', size: 10 } }
+                        },
+                        y: {
+                            min: 0,
+                            max: 5,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#94a3b8', font: { family: 'Vazirmatn', size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Phase Navigation
+        const phaseTitles = [
+            'بخش ۱: معرفی و چکیده',
+            'بخش ۲: ضرورت و اهداف',
+            'بخش ۳: چیدمان نوری و لیزر',
+            'بخش ۴: مراحل اجرایی و مدار',
+            'بخش ۵: کالیبراسیون و فرمول تصحیح',
+            'بخش ۶: زمان‌بندی و هزینه‌ها',
+            'بخش ۷: گروه و منابع علمی'
+        ];
+
+        function goToPhase(phaseNum) {
+            currentPhase = phaseNum;
+
+            // Update Header Title & Scrubber
+            document.getElementById('current-phase-title').textContent = phaseTitles[phaseNum - 1];
+            document.getElementById('scrubber-range').value = phaseNum;
+            document.getElementById('scrubber-num').textContent = `${phaseNum}/7`;
+
+            // Update Phase Buttons
+            document.querySelectorAll('.phase-btn').forEach((btn, idx) => {
+                if (idx + 1 === phaseNum) {
+                    btn.classList.add('border-laser', 'bg-laser/20', 'text-white');
+                    btn.classList.remove('bg-slate-800', 'text-slate-300');
+                } else {
+                    btn.classList.remove('border-laser', 'bg-laser/20', 'text-white');
+                    btn.classList.add('bg-slate-800', 'text-slate-300');
+                }
+            });
+
+            // Toggle Panels
+            document.querySelectorAll('.phase-panel').forEach((panel, idx) => {
+                if (idx + 1 === phaseNum) {
+                    panel.classList.remove('hidden');
+                    panel.classList.add('flex');
+                } else {
+                    panel.classList.add('hidden');
+                    panel.classList.remove('flex');
+                }
+            });
+
+            // Interactive behaviors tied to phases
+            if (phaseNum === 3) {
+                isLaserOn = true;
+                updateReadings();
+            } else if (phaseNum === 5) {
+                // Auto toggle ambient on to demonstrate math formula
+                isAmbientOn = true;
+                toggleAmbient();
+            }
+        }
+
+        // Auto Scrub Playback
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            const playIcon = document.getElementById('play-icon');
+
+            if (isPlaying) {
+                playIcon.setAttribute('data-lucide', 'pause');
+                lucide.createIcons();
+                playInterval = setInterval(() => {
+                    let nextPhase = currentPhase + 1;
+                    if (nextPhase > 7) nextPhase = 1;
+                    goToPhase(nextPhase);
+                }, 4000);
+            } else {
+                playIcon.setAttribute('data-lucide', 'play');
+                lucide.createIcons();
+                clearInterval(playInterval);
+            }
+        }
+    </script>
+</body>
+</html>
